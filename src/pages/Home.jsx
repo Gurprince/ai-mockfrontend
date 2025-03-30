@@ -25,6 +25,9 @@ function Interview() {
   const recognition = useRef(null);
   const synth = useRef(window.speechSynthesis);
 
+  // Base URL for your backend deployed on Render
+  const BASE_URL = "https://ai-mock-backend-3l3w.onrender.com/api";
+
   // Generate questions from backend
   const generateQuestions = async () => {
     if (skills.length === 0) {
@@ -33,13 +36,10 @@ function Interview() {
     }
     setLoadingQuestions(true);
     try {
-      const res = await axios.post(
-        "http://localhost:5000/api/questions/generate-questions",
-        {
-          skills, // use skills entered by user
-          interviewType,
-        }
-      );
+      const res = await axios.post(`${BASE_URL}/questions/generate-questions`, {
+        skills, // use skills entered by user
+        interviewType,
+      });
       const qs = res.data.questions || [];
       setQuestions(qs);
       if (interviewType === "verbal" && qs.length > 0) {
@@ -74,14 +74,11 @@ function Interview() {
   const evaluateWrittenAnswer = async (index) => {
     if (!questions[index] || !writtenResponses[index]?.trim()) return;
     try {
-      const res = await axios.post(
-        "http://localhost:5000/api/questions/evaluate",
-        {
-          question: questions[index],
-          response: writtenResponses[index],
-          interviewType,
-        }
-      );
+      const res = await axios.post(`${BASE_URL}/questions/evaluate`, {
+        question: questions[index],
+        response: writtenResponses[index],
+        interviewType,
+      });
       setWrittenEvaluations((prev) => ({
         ...prev,
         [index]: res.data.feedback,
@@ -141,14 +138,11 @@ function Interview() {
   const evaluateOverallVerbal = async () => {
     try {
       const combinedResponse = Object.values(verbalResponses).join("\n");
-      const res = await axios.post(
-        "http://localhost:5000/api/questions/evaluate",
-        {
-          question: "Overall verbal interview evaluation",
-          response: combinedResponse,
-          interviewType,
-        }
-      );
+      const res = await axios.post(`${BASE_URL}/questions/evaluate`, {
+        question: "Overall verbal interview evaluation",
+        response: combinedResponse,
+        interviewType,
+      });
       setOverallEvaluation(res.data.feedback);
     } catch (err) {
       console.error("Error evaluating verbal interview:", err);
@@ -241,9 +235,7 @@ function Interview() {
             onClick={generateQuestions}
             className="w-full px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition shadow-md"
           >
-            {loadingQuestions
-              ? "Generating Questions..."
-              : "Generate Questions"}
+            {loadingQuestions ? "Generating Questions..." : "Generate Questions"}
           </button>
         </section>
 
@@ -313,8 +305,7 @@ function Interview() {
                 Your Response:
               </p>
               <p className="mt-1 text-gray-700 italic">
-                {verbalResponses[currentQuestionIndex] ||
-                  "Waiting for response..."}
+                {verbalResponses[currentQuestionIndex] || "Waiting for response..."}
               </p>
             </div>
             <button
